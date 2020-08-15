@@ -1,0 +1,7 @@
+Run the following commands to compile QRpartial.c in matlab
+
+Windows & Linux & Mac :
+mex -O -largeArrayDims QRpartial.c -lmwlapack -lmwblas
+
+If there is error about C99, C11 mode: 
+mex -O -largeArrayDims QRpartial.c -lmwlapack -lmwblas CFLAGS='$CFLAGS -std=c99'
