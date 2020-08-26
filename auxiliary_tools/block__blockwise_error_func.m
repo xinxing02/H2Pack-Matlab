@@ -1,9 +1,15 @@
-function [err, blcnorm] = block__blockwise_error_func(kernel, coord, htree, blocklist, I, exU)
+function [err, blcnorm] = block__blockwise_error_func(kernel, h2mat, htree, blocklist)
 cluster = htree.cluster;
 nodelvl = htree.nodelvl;
-err = 0;
-blcnorm = 0;
-for i = 1 : size(blocklist, 1)
+coord   = htree.coord;
+I       = h2mat.I;
+exU     = H2__explicitU(h2mat, htree);
+
+nblock = size(blocklist, 1);
+err = zeros(nblock, 1);
+blcnorm = zeros(nblock, 1);
+
+for i = 1 : nblock
     c1 = blocklist(i,1);
     c2 = blocklist(i,2);
     idx1 = cluster(c1, 1):cluster(c1,2);
@@ -12,32 +18,32 @@ for i = 1 : size(blocklist, 1)
     %   Special case for extremely large sub-blocks
     if length(idx1) > 1e4
         [suberr, subblcnorm] = large_subblock(c1, c2, ceil(length(idx1)/5e3));
-        err = err + suberr^2;
-        blcnorm = blcnorm + subblcnorm^2;
+        err(i) = suberr;
+        blcnorm(i) = subblcnorm;
     else        
         tmpA = kernel({coord(idx1,:), coord(idx2,:)}); 
-        blcnorm = blcnorm + norm(tmpA, 'fro')^2;
+        blcnorm(i) = norm(tmpA, 'fro');
         if isempty(I{c1}) || isempty(I{c2}) || isempty(exU{c1}) || isempty(exU{c2})
             disp 'given block not exist in the H2 representation';
             return ;
         end
         if nodelvl(c1) == nodelvl(c2)
             tmpAij = kernel({coord(I{c1},:), coord(I{c2},:)}); 
-            err = err + norm(tmpA - exU{c1} * tmpAij * (exU{c2})', 'fro')^2;
+            err(i) = norm(tmpA - exU{c1} * tmpAij * (exU{c2})', 'fro');
 
     %         fprintf('block %d * %d has error ratio %e\n', c1, c2, ...
     %         norm(tmpA - exU{c1} * tmpAij * (exU{c2})', 'fro')/norm(tmpA, 'fro'));
         elseif nodelvl(c1) > nodelvl(c2)  
             % c2 is the leafnode at higher level. only compress on c1's side
             tmpAij = kernel({coord(I{c1},:), coord(idx2, :)});
-            err = err + norm(tmpA - exU{c1} * tmpAij, 'fro')^2;
+            err(i) = norm(tmpA - exU{c1} * tmpAij, 'fro');
 
     %         fprintf('block %d * %d has error ratio %e\n', c1, c2, ...
     %         norm(tmpA - exU{c1} * tmpAij, 'fro')/norm(tmpA, 'fro'));
         else
             % c1 is the leafnode at higher level. only compress on c2's side
             tmpAij = kernel({coord(idx1, :), coord(I{c2}, :)});
-            err = err + norm(tmpA - tmpAij * (exU{c2})', 'fro')^2;
+            err(i) = norm(tmpA - tmpAij * (exU{c2})', 'fro');
 
     %         fprintf('block %d * %d has error ratio %e\n', c1, c2, ...
     %         norm(tmpA - tmpAij * (exU{c2})', 'fro')/norm(tmpA, 'fro'));
@@ -46,8 +52,8 @@ for i = 1 : size(blocklist, 1)
     clear tmpA tmpAij
 end
 
-blcnorm = sqrt(blcnorm);
-err = sqrt(err);
+% blcnorm = sqrt(blcnorm);
+% err = sqrt(err);
 
 function [suberr, subblcnorm] = large_subblock(c1, c2, nblk)
     %   basic check
