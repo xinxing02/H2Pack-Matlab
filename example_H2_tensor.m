@@ -7,7 +7,7 @@ kernel  = @(coord)rpy_mex(coord, radii, eta);
 kdim = 3;
 
 %%  Point Generation
-npts = 60000;
+npts = 30000;
 dim = 3;
 coord = 8*npts^(1/dim) * rand(npts, dim);
 

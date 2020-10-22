@@ -5,7 +5,7 @@ kernel = @(coord)multiquadric(coord, 1/2, 100);
 % kernel = @(coord)gaussian(coord, 0.1);
 
 %%  Point generation
-npts = 120000;
+npts = 80000;
 dim = 3;
 coord = npts^(1/3)*rand(npts, dim);
 
@@ -46,9 +46,7 @@ fprintf("min/mean/max relative errors for 10 matvecs:\n%.3e,%.3e,%.3e\n", ...
 %   WARNING: for large matrices, e.g., 40000*40000
 %            it costs extremely large amount of storage and time
 %
-%%  METHOD 1: given a dense matrix
-%  WARNING: for large matrices, e.g., 40000*40000
-%           it costs extremely large amount of storage and time
+%$  METHOD 1: given a dense matrix
 alpha = 1;
 A = kernel(htree.coord);
 h2mat = Mat2H2_ID(A, htree, 'reltol', 1e-6, alpha);
