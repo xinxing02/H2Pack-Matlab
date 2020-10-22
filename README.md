@@ -5,5 +5,5 @@ This is the Matlab prototype for our published [H2Pack package](https://github.c
 ## Getting Started
 
 1. run "compile.m" in the root directory in Matlab to compile several necessary mex files. 
-2. read throught example_\*.m files. 
+2. example_\*.m files explain the basic usage of all functions, and can be easily modified for personal use. 
 
