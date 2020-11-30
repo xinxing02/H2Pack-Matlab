@@ -31,6 +31,7 @@ function htree = hierarchical_partition(coord, minSize, dim, box)
     htree.parent   = parent;
     htree.children = children; 
     htree.cluster  = cluster;
+    htree.minsize  = minSize;
     htree.level    = tree__nodes_of_level(parent);
     htree.nlevel   = length(htree.level);
     htree.nodelvl  = tree__level_of_node(parent);
