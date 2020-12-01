@@ -13,7 +13,7 @@ logdet = 0;
 
 if ulvfactor.LU == true
     %   ULV decomposition based on LU:  A = L * U 
-    Lr = ulvfactor.Lr;
+    Lc = ulvfactor.Lc;
     
     %   Splitted calculation   
     level = htree.level;
@@ -22,7 +22,7 @@ if ulvfactor.LU == true
     for i = 1:nlevel
         for j = 1 : length(level{i})
             node = level{i}(j);      
-            logdet = logdet + log(abs(det(Lr{node})));
+            logdet = logdet + log(abs(det(Lc{node})));
         end
     end
     return ;

@@ -5,7 +5,7 @@ kernel = @(coord)multiquadric(coord, 1/2, 100);
 % kernel = @(coord)gaussian(coord, 0.1);
 
 %%  Point Generation
-npts = 80000;
+npts = 20000;
 dim = 2;
 coord = npts^(1/dim) * rand(npts, dim);
 

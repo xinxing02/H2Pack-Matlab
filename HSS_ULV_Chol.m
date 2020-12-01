@@ -36,6 +36,8 @@ function ulvfactor = HSS_ULV_Chol(hssmat, htree, shift)
     U_mid = cell(nnode, 1);     % Basis changed
     r = zeros(nnode, 1);
     
+    logdet = 0;
+    
     %%  Non-root node construction
     % In HSS, the top level with admissible blocks is the 2nd level. 
     for i = nlevel : -1 : 2
@@ -84,6 +86,8 @@ function ulvfactor = HSS_ULV_Chol(hssmat, htree, shift)
                 end
                 L{node} = [eye(cutpoint), LD21'; zeros(nrow-cutpoint, cutpoint), tmpL];
                 r(node) = cutpoint;
+                % logdet = logdet + 2 * sum(log(diag(L{node})));
+                logdet = logdet + 2 * sum(log(diag(tmpL)));
                 
                 %   Remaining Schur complement at tmpD11.
                 D_mid{node} = tmpD11 - LD21' * LD21;
@@ -152,6 +156,8 @@ function ulvfactor = HSS_ULV_Chol(hssmat, htree, shift)
                 end
                 L{node} = [eye(cutpoint), LD21'; zeros(nrow-cutpoint, cutpoint), tmpL];
                 r(node) = cutpoint; 
+                % logdet = logdet + 2 * sum(log(diag(L{node})));
+                logdet = logdet + 2 * sum(log(diag(tmpL)));
                 
                 %   Remaining Schur complement at tmpD11.
                 D_mid{node} = tmpD11 - LD21' * LD21;
@@ -195,6 +201,7 @@ function ulvfactor = HSS_ULV_Chol(hssmat, htree, shift)
         ulvfactor = [];
         return 
     end
+    logdet = logdet + 2 * sum(log(diag(L{root})));
     
     %   Orthogonalization (only for simplicity)
     Q{root} = eye(size(D_mid{root}));
@@ -212,4 +219,5 @@ function ulvfactor = HSS_ULV_Chol(hssmat, htree, shift)
     ulvfactor.LU = false;
     ulvfactor.Chol = true;
     ulvfactor.shift = shift;
+    ulvfactor.logdet = logdet;
 end

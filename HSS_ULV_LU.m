@@ -37,6 +37,9 @@ function ulvfactor = HSS_ULV_LU(hssmat, htree, shift)
     D_mid = cell(nnode, 1);     % Diagonal block 
     U_mid = cell(nnode, 1);     % Basis changed
     
+    
+    logdet = 0;
+    
     %%  Non-root node construction
     % In HSS, the top level with admissible blocks is the 2nd level. 
     for i = nlevel : -1 : 2         
@@ -93,6 +96,8 @@ function ulvfactor = HSS_ULV_LU(hssmat, htree, shift)
                 end        
                 Lr{node} = [eye(cutpoint), DU12; zeros(nrow-cutpoint, cutpoint), tmpLr];
                 Lc{node} = [eye(cutpoint), zeros(cutpoint, nrow-cutpoint); LD21, tmpLc];
+                % logdet = logdet + log(abs(det(Lc{node})));
+                logdet = logdet + log(abs(prod(diag(tmpLc))));
                 
                 %   Schur complement at tmpD11.
                 D_mid{node} = tmpD11 - DU12 * LD21;
@@ -169,6 +174,8 @@ function ulvfactor = HSS_ULV_LU(hssmat, htree, shift)
                 end        
                 Lr{node} = [eye(cutpoint), DU12; zeros(nrow-cutpoint, cutpoint), tmpLr];
                 Lc{node} = [eye(cutpoint), zeros(cutpoint, nrow-cutpoint); LD21, tmpLc];
+                % logdet = logdet + log(abs(det(Lc{node})));
+                logdet = logdet + log(abs(prod(diag(tmpLc))));
                 
                 %   Schur complement at tmpD11.
                 D_mid{node} = tmpD11 - DU12 * LD21;
@@ -216,6 +223,8 @@ function ulvfactor = HSS_ULV_LU(hssmat, htree, shift)
         ulvfactor = [];
         return 
     end
+    % logdet = logdet + log(abs(det(Lc{node})));
+    logdet = logdet + log(abs(prod(diag(Lc{root}))));
     
     %   Orthogonalization (only for simplicity)
     Q{root} = eye(size(D_mid{root}));
@@ -233,4 +242,5 @@ function ulvfactor = HSS_ULV_LU(hssmat, htree, shift)
     ulvfactor.LU = true;
     ulvfactor.Chol = false;
     ulvfactor.shift = shift;
+    ulvfactor.logdet = logdet;
 end
