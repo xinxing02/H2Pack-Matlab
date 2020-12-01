@@ -123,15 +123,18 @@ function [htree, h2mat] = read_H2_matrix_files(metadata_fname, binary_fname)
     end
 
     %% 6. Metadata: H2Pack dedicated part: skeleton point indices
+    has_skel = fscanf(metadata_fid, '%d', 1);
     h2mat.I = cell(htree.nnode, 1);
-    for i = 1 : htree.nnode
-        node   = fscanf(metadata_fid, '%d', 1) + 1;
-        n_skel = fscanf(metadata_fid, '%d', 1);
-        tmpI   = zeros(1, n_skel);
-        for j = 1 : n_skel
-            tmpI(j) = fscanf(metadata_fid, '%d', 1) + 1;
+    if (has_skel == 1)
+        for i = 1 : htree.nnode
+            node   = fscanf(metadata_fid, '%d', 1) + 1;
+            n_skel = fscanf(metadata_fid, '%d', 1);
+            tmpI   = zeros(1, n_skel);
+            for j = 1 : n_skel
+                tmpI(j) = fscanf(metadata_fid, '%d', 1) + 1;
+            end
+            h2mat.I{node} = tmpI;
         end
-        h2mat.I{node} = tmpI;
     end
 
     fclose(metadata_fid);

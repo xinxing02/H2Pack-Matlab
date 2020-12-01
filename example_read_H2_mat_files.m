@@ -6,10 +6,6 @@ h2mat.kernel = kernel;
 x       = randn(htree.n_point, 10);
 u_h2    = H2_matvec(h2mat, htree, x);
 idx     = randperm(htree.n_point, 1000);
-% For Coulomb kernel, H2Pack uses K(x, x) = 0 but H2Pack-Matlab uses K(x, x) = 1
-if (h2mat.D{1, 1}(1, 1) == 0)
-    u_h2 = u_h2 + x;  
-end
 u_exact = kernel({htree.coord(idx, :), htree.coord}) * x;
 err     = sqrt(sum((u_h2(idx, :)-u_exact).^2, 1) ) ./ sqrt(sum(u_exact.^2, 1));
 

@@ -115,6 +115,7 @@ function write_H2_matrix_files(htree, h2mat, metadata_fname, binary_fname)
     end
 
     %% 6. Metadata: H2Pack dedicated part: skeleton point indices
+    fprintf(metadata_fid, '%d\n', 1);  % Has H2Pack skeleton point indices
     for i = 1 : htree.nnode
         tmpI = h2mat.I{i};
         fprintf(metadata_fid, '%6d %6d ', i - 1, length(tmpI));
