@@ -26,6 +26,18 @@ function write_H2_matrix_files(htree, h2mat, metadata_fname, binary_fname)
     fprintf(metadata_fid, '%d\n', h2mat.minlvl - 1);
     fprintf(metadata_fid, '%d\n', n_near);
     fprintf(metadata_fid, '%d\n', n_far);
+    has_part_adm = 0;
+    for i = 1 : n_far
+        node0  = h2mat.far(i, 1);
+        node1  = h2mat.far(i, 2);
+        level0 = htree.nodelvl(node0);
+        level1 = htree.nodelvl(node0);
+        if (level0 ~= level1)
+            has_part_adm = 1;
+            break;
+        end
+    end
+    fprintf(metadata_fid, '%d\n', has_part_adm);
     fprintf(metadata_fid, '%e\n', h2mat.par(1));
     for i = 1 : htree.nnode
         fprintf(metadata_fid, '%6d ', i - 1);
@@ -66,8 +78,15 @@ function write_H2_matrix_files(htree, h2mat, metadata_fname, binary_fname)
 
     %% 4. Metadata & binary data: B matrices
     for i = 1 : n_far
-        node0 = h2mat.far(i, 1);
-        node1 = h2mat.far(i, 2);
+        node0  = h2mat.far(i, 1);
+        node1  = h2mat.far(i, 2);
+        level0 = htree.nodelvl(node0);
+        level1 = htree.nodelvl(node0);
+        if (level0 == level1)
+            is_part_adm = 0;
+        else
+            is_part_adm = 1;
+        end
         if (h2mat.JIT == 1)
             idx0 = htree.cluster(node0, 1) : htree.cluster(node0, 2);
             idx1 = htree.cluster(node1, 1) : htree.cluster(node1, 2);  
@@ -82,7 +101,7 @@ function write_H2_matrix_files(htree, h2mat, metadata_fname, binary_fname)
             tmpB = h2mat.B{node0, node1};
         end
         [B_nrow, B_ncol] = size(tmpB);
-        fprintf(metadata_fid, '%6d %6d %5d %5d\n', node0 - 1, node1 - 1, B_nrow, B_ncol);
+        fprintf(metadata_fid, '%6d %6d %5d %5d %d\n', node0 - 1, node1 - 1, B_nrow, B_ncol, is_part_adm);
         fwrite(binary_fid, tmpB', 'double');
     end
 
