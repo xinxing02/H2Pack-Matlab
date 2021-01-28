@@ -3,7 +3,7 @@ kernel = @(coord)reciprocal(coord, 1);
 
 %%  Point generation
 npts  = 40000;
-dim   = 2;
+dim   = 3;
 coord = npts^(1/dim)*rand(npts, dim);
 
 %%  STEP1: Hierarchical partitioning 
