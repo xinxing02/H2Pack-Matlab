@@ -10,10 +10,10 @@ if isnumeric(coord)
     end
     dist = pdist(coord);
     M = squareform(dist.^(-alpha));
+    M(M > 1e20) = 0;
 elseif iscell(coord)&&length(coord)==2      
-    M = pdist2(coord{1}, coord{2});
-    zeroM = (M == 0);
+    M = pdist2(coord{1}, coord{2});    
     M = 1./(M.^alpha);
-    M(zeroM) = 0;
+    M(M > 1e20) = 0;
 end
 end
