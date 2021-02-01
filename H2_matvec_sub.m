@@ -39,40 +39,6 @@ function u = H2_matvec_sub(h2mat, htree, vec, rowidx, colidx)
     %%  Construct interaction list for the interaction between the two sets of leaf nodes
     [NFList, FFList] = H2__interaction_list(htree, row_htree, col_htree, h2mat.alpha);
     
-    %%  Reformualte the far field list
-    %   node_farlist{i} contains all nodes j that (i,j) or (j,i) is in 'far' list.
-    node_farlist = cell(nnode, 1);
-    for i = 1 : nnode
-        node = i; 
-        idx = find(far(:,1) == node | far(:, 2) == node);
-        tmp = unique( reshape(far(idx, :), [], 1) );
-        tmp(tmp == node) = [];
-        node_farlist{node} = tmp;
-    end
-    
-    %%  For each pair (i,j) in FFList, find its parent pair which lies in 'far' in original H2 mat.
-    FFList_H2 = zeros(size(FFList));
-    for i = 1 : size(FFList, 1)
-        row_i = FFList(i, 1);
-        col_j = FFList(i, 2);
-        ances_row_i = [row_i, tree__node_ancestor(parent, row_i)];
-        ances_col_j = [col_j, tree__node_ancestor(parent, col_j)];
-        for k = 1 : length(ances_row_i)
-            ii = ances_row_i(k);
-            jj = intersect(node_farlist{ii}, ances_col_j);
-            if isempty(jj) 
-                continue;
-            else
-                break;
-            end
-        end
-        if isempty(jj)
-            fprintf("something is wrong in identifying the parent far list!\n");
-        end
-        FFList_H2(i, 1) = ii;
-        FFList_H2(i, 2) = jj;
-    end
-    
     %%  Properly expand the vector indexed by row_idx to the larger vector indexed by row_leafnode
     vec_in = cell(nnode, 1);
     for i = 1 : length(col_leafnode)
@@ -89,8 +55,10 @@ function u = H2_matvec_sub(h2mat, htree, vec, rowidx, colidx)
         vec_out{node} = zeros(mcluster(node, 2) - mcluster(node, 1) + 1, nvec);
     end
     
+
+    
     %%   Upward Sweep (calculate the U_i' * y_i    
-    upward_minlvl = min(nodelvl(FFList_H2(:, 2)));
+    upward_minlvl = min(nodelvl(FFList(:, 2)));
     col_level     = col_htree.level;
     col_children  = col_htree.children;
     col_nlevel    = col_htree.nlevel;
@@ -125,10 +93,10 @@ function u = H2_matvec_sub(h2mat, htree, vec, rowidx, colidx)
     end
     
     %%  Intermediate Sweep (calculate B_ij * U_j' * y_j)    
-    inter_u = cell(nnode,1);
-    for i = 1 : size(FFList_H2, 1)
-        c1 = FFList_H2(i,1);
-        c2 = FFList_H2(i,2);
+    inter_u = cell(nnode, nvec);
+    for i = 1 : size(FFList, 1)
+        c1 = FFList(i,1);
+        c2 = FFList(i,2);
         
         if h2mat.JIT == false
             if c1 > c2
@@ -153,7 +121,7 @@ function u = H2_matvec_sub(h2mat, htree, vec, rowidx, colidx)
         end
         
         if size(inter_u{c1}, 2) == 0
-            inter_u{c1} = zeros(size(h2mat.U{c1}, 2), 1);
+            inter_u{c1} = zeros(size(h2mat.U{c1}, 2), nvec);
         end
         
         if nodelvl(c1) == nodelvl(c2)

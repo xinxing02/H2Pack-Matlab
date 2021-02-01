@@ -45,8 +45,8 @@ fprintf("min/mean/max relative errors for 10 matvecs:\n%.3e,%.3e,%.3e\n", ...
     min(err), mean(err), max(err));
 
 %%  STEP5: H2 sub-matvec tests
-nrow = 10;
-ncol = 10;
+nrow = 1000;
+ncol = 112;
 rowidx = randperm(npts, nrow);
 colidx = randperm(npts, ncol);
 x = randn(ncol, 10);
