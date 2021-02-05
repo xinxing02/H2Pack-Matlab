@@ -9,6 +9,19 @@ function u = H2_matvec(h2mat, htree, vec)
     kdim = h2mat.kdim;
     minlvl = h2mat.minlvl;
     kernel = h2mat.kernel;
+
+    %%  Permute the input vector 
+    %vec(htree.permutation, :) = vec;
+    vec0 = vec;
+    npt = length(htree.permutation);
+    for i = 1 : npt
+        j     = htree.permutation(i);
+        sidx0 = (i - 1) * kdim + 1;
+        eidx0 =  i      * kdim;
+        sidx1 = (j - 1) * kdim + 1;
+        eidx1 =  j      * kdim;
+        vec(sidx1 : eidx1, :) = vec0(sidx0 : eidx0, :);
+    end
     
     %%   Basic information of the htree
     children = htree.children;
@@ -184,5 +197,17 @@ function u = H2_matvec(h2mat, htree, vec)
             u(midx2, :) = u(midx2, :) + tmpD' * vec(midx1, :);
         end
     end
-        
+    
+    %%  Permute the output vector 
+    %u = u(htree.permutation, :);
+    u0 = u;
+    npt = length(htree.permutation);
+    for i = 1 : npt
+        j     = htree.permutation(i);
+        sidx0 = (i - 1) * kdim + 1;
+        eidx0 =  i      * kdim;
+        sidx1 = (j - 1) * kdim + 1;
+        eidx1 =  j      * kdim;
+        u(sidx0 : eidx0, :) = u0(sidx1 : eidx1, :);
+    end
 end

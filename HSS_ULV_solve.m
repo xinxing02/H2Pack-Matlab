@@ -1,35 +1,72 @@
-function u = HSS_ULV_solve(ulvfactor, htree, rhs, flag)
-
+function u = HSS_ULV_solve(ulvfactor, htree, rhs, kdim, flag)
 %   Use ULV decomposition of an HSS matrix to solve a linear system
 
-if isempty(ulvfactor)
-    disp('ULV factors are not available');
-    return
+    %%  Permute the input vector 
+    %rhs(htree.permutation, :) = rhs;
+    rhs0 = rhs;
+    npt = length(htree.permutation);
+    for i = 1 : npt
+        j     = htree.permutation(i);
+        sidx0 = (i - 1) * kdim + 1;
+        eidx0 =  i      * kdim;
+        sidx1 = (j - 1) * kdim + 1;
+        eidx1 =  j      * kdim;
+        rhs(sidx1 : eidx1, :) = rhs0(sidx0 : eidx0, :);
+    end
+
+    if isempty(ulvfactor)
+        disp('ULV factors are not available');
+        return
+    end
+
+
+    if ulvfactor.LU == true
+        if nargin < 5
+            midu = HSS_ULV_solve_LU(ulvfactor, htree, rhs,  'U');
+            u    = HSS_ULV_solve_LU(ulvfactor, htree, midu, 'L');
+        else
+            u    = HSS_ULV_solve_LU(ulvfactor, htree, midu, flag);
+        end
+    end
+
+
+    if ulvfactor.Chol == true
+        if nargin < 5
+            midu = HSS_ULV_solve_Chol(ulvfactor, htree, rhs,  'LT');
+            u    = HSS_ULV_solve_Chol(ulvfactor, htree, midu, 'L');
+        else
+            u    = HSS_ULV_solve_Chol(ulvfactor, htree, midu, flag);
+        end
+    end
+
+    %%  Permute the output vector 
+    %u = u(htree.permutation, :);
+    u0 = u;
+    npt = length(htree.permutation);
+    for i = 1 : npt
+        j     = htree.permutation(i);
+        sidx0 = (i - 1) * kdim + 1;
+        eidx0 =  i      * kdim;
+        sidx1 = (j - 1) * kdim + 1;
+        eidx1 =  j      * kdim;
+        u(sidx0 : eidx0, :) = u0(sidx1 : eidx1, :);
+    end
 end
 
+function u = HSS_ULV_solve_LU(ulvfactor, htree, rhs, flag)
+%   ULV decomposition based on LU:  A = L * U 
+%       if flag == 'L', solve L * u = rhs;
+%       if flag == 'U', solve U * u = rhs;
+%       if flag empty,  solve A * u = rhs;
 
-if ulvfactor.LU == true
-    %   ULV decomposition based on LU:  A = L * U 
-    %       if flag == 'L', solve L * u = rhs;
-    %       if flag == 'U', solve U * u = rhs;
-    %       if flag empty,  solve A * u = rhs;
-    
-    if nargin < 4
-        midu = HSS_ULV_solve(ulvfactor, htree, rhs, 'U');
-        u    = HSS_ULV_solve(ulvfactor, htree, midu, 'L');
-        return ;
-    end
-    
-    Q = ulvfactor.Q;
-    Lr = ulvfactor.Lr;
-    Lc = ulvfactor.Lc;
-    Idx = ulvfactor.Idx;
-    
-    %   Splitted calculation   
-    level = htree.level;
-    nlevel = length(level);    
+    Q      = ulvfactor.Q;
+    Lr     = ulvfactor.Lr;
+    Lc     = ulvfactor.Lc;
+    Idx    = ulvfactor.Idx;
+    level  = htree.level;
+    nlevel = length(level); 
+
     u = rhs;
-    
     if strcmp(flag, 'L')
         for i = 1:nlevel
             for j = 1 : length(level{i})
@@ -45,32 +82,22 @@ if ulvfactor.LU == true
             end
         end
     end
-    return ;
 end
 
+function u = HSS_ULV_solve_Chol(ulvfactor, htree, rhs, flag)
+%   ULV decomposition based on Chol:  A = L * L' 
+%       if flag == 'LT', solve L'* u = rhs;
+%       if flag == 'L',  solve L * u = rhs;
+%       if flag empty,   solve A * u = rhs;
 
-if ulvfactor.Chol == true
-    %   ULV decomposition based on Chol:  A = L * L' 
-    %       if flag == 'LT', solve L'* u = rhs;
-    %       if flag == 'L',  solve L * u = rhs;
-    %       if flag empty,   solve A * u = rhs;
-    
-    if nargin < 4 
-        midu = HSS_ULV_solve(ulvfactor, htree, rhs, 'LT');
-        u    = HSS_ULV_solve(ulvfactor, htree, midu, 'L');
-        return ;
-    end
-        
-    Q = ulvfactor.Q;
-    L = ulvfactor.L;
-    r = ulvfactor.r;
-    Idx = ulvfactor.Idx;
-    
-    %   Splitted calculation  
-    level = htree.level;
-    nlevel = length(level);    
+    Q      = ulvfactor.Q;
+    L      = ulvfactor.L;
+    r      = ulvfactor.r;
+    Idx    = ulvfactor.Idx;
+    level  = htree.level;
+    nlevel = length(level);   
+
     u = rhs;
-    
     if strcmp(flag, 'L')
         for i = 1:nlevel
             for j = 1 : length(level{i})
@@ -95,5 +122,4 @@ if ulvfactor.Chol == true
             end
         end
     end
-    return ;
 end

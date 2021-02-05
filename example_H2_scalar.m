@@ -14,7 +14,7 @@ coord = bsxfun(@rdivide, coord, sum(coord.^2, 2).^(1/2));
 %%  STEP1: Hierarchical partitioning 
 minSize = 200;
 htree = hierarchical_partition(coord, minSize, dim);
-clear coord; % htree has a reorder copy of coord
+%clear coord; % htree has a reorder copy of coord
 
 %%  STEP2: Proxy Point Selection
 alpha =  1;
@@ -38,7 +38,7 @@ toc
 
 %   error checking
 idx = randperm(npts, 1000);
-u_exact = kernel({htree.coord(idx, :), htree.coord}) * x;
+u_exact = kernel({coord(idx, :), coord}) * x;
 err = sqrt(sum((u_h2(idx, :)-u_exact).^2, 1) ) ./ sqrt(sum(u_exact.^2, 1));
 
 fprintf("min/mean/max relative errors for 10 matvecs:\n%.3e,%.3e,%.3e\n", ...
@@ -55,7 +55,7 @@ u_h2 = H2_matvec_sub(h2mat, htree, x, rowidx, colidx);
 toc
 
 %   error checking
-u_exact = kernel({htree.coord(rowidx, :), htree.coord(colidx, :)}) * x;
+u_exact = kernel({coord(rowidx, :), coord(colidx, :)}) * x;
 err = sqrt(sum((u_h2-u_exact).^2, 1) ) ./ sqrt(sum(u_exact.^2, 1));
 
 fprintf("min/mean/max relative errors for 10 matvecs:\n%.3e,%.3e,%.3e\n", ...

@@ -5,14 +5,14 @@ kernel  = @(coord)rpy_mex(coord, radii, eta);
 kdim = 3;
 
 %%  Random generation of points
-npts = 40000;
+npts = 10000;
 dim = 3;
 coord = 8*npts^(1/dim) * [rand(npts, 2), zeros(npts, 1)];
 
 %%  STEP1: Hierarchical partitioning 
 minSize = 200;
 htree = hierarchical_partition(coord, minSize, dim);
-clear coord; % htree has a reorder copy of coord
+%clear coord; % htree has a reorder copy of coord
 
 %%  STEP2: Proxy Point Selection for far field interaction
 alpha_pp =  1;
@@ -33,7 +33,7 @@ x = randn(kdim*npts, 10);
 u_hss = H2_matvec(hssmat, htree, x);
 %   error checking
 idx = 1:600;
-u_exact = kernel({htree.coord(idx, :), htree.coord}) * x;
+u_exact = kernel({coord(idx, :), coord}) * x;
 err = sqrt(sum((u_hss(1:(600*kdim), :)-u_exact).^2, 1) ) ./ sqrt(sum(u_exact.^2, 1));
 fprintf("min/mean/max relative errors in 10 matvec:\n%.3e,%.3e,%.3e\n", ...
     min(err), mean(err), max(err));
@@ -49,7 +49,7 @@ ulvfactor = HSS_ULV_LU(hssmat, htree);  %for general symmetric HSS matrix
 %%  STEP5.1: ULV solve
 x = randn(kdim*npts, 10);
 b = H2_matvec(hssmat, htree, x);
-x_sol = HSS_ULV_solve(ulvfactor, htree, b);
+x_sol = HSS_ULV_solve(ulvfactor, htree, b, kdim);
 err = sqrt(sum((x-x_sol).^2, 1) ) ./ sqrt(sum(x_sol.^2, 1));
 fprintf("min/mean/max relative errors in 10 ULV-solves:\n%.3e,%.3e,%.3e\n", ...
     min(err), mean(err), max(err));
@@ -57,7 +57,7 @@ fprintf("min/mean/max relative errors in 10 ULV-solves:\n%.3e,%.3e,%.3e\n", ...
 %%  STEP5.2: ULV matvec
 x = randn(kdim*npts, 10);
 b_hss = H2_matvec(hssmat, htree, x);
-b_ulv = HSS_ULV_matvec(ulvfactor, htree, x);
+b_ulv = HSS_ULV_matvec(ulvfactor, htree, x, kdim);
 err = sqrt(sum((b_hss - b_ulv).^2, 1) ) ./ sqrt(sum(b_hss.^2, 1));
 fprintf("min/mean/max relative errors in 10 ULV-matvecs:\n%.3e,%.3e,%.3e\n", ...
     min(err), mean(err), max(err));

@@ -7,7 +7,7 @@ kernel  = @(coord)rpy_mex(coord, radii, eta);
 kdim = 3;
 
 %%  Point Generation
-npts = 30000;
+npts = 10000;
 dim = 3;
 coord = 8*npts^(1/dim) * rand(npts, dim);
 
@@ -34,7 +34,7 @@ x = randn(kdim*npts, 10);
 u_h2 = H2_matvec(h2mat, htree, x);
 %   error checking at the first 1800 entries
 idx = 1 : 600;
-u_exact = kernel({htree.coord(idx, :), htree.coord}) * x;
+u_exact = kernel({coord(idx, :), coord}) * x;
 err = sqrt(sum((u_h2(1:600*kdim, :)-u_exact).^2, 1) ) ./ sqrt(sum(u_exact.^2, 1));
 fprintf("min/mean/max relative errors in 10 matvec:\n%.3e,%.3e,%.3e\n", ...
     min(err), mean(err), max(err));
